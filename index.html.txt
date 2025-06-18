@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cat Overpopulation Prevention Calculator</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 500px; margin: 20px auto; padding: 10px; }
+  label { display: block; margin-top: 15px; font-weight: bold; }
+  input[type=number] { width: 100%; padding: 8px; font-size: 16px; }
+  button { margin-top: 20px; padding: 10px 20px; font-size: 18px; cursor: pointer; background: #28a745; color: white; border: none; }
+  .toggle-btn { padding: 8px 12px; margin-right: 10px; border: 1px solid #007bff; cursor: pointer; }
+  .active { background-color: #007bff; color: white; }
+  #result { margin-top: 25px; font-size: 20px; font-weight: bold; color: #155724; }
+</style>
+</head>
+<body>
+
+<h1>Cat Overpopulation Prevention Calculator</h1>
+
+<label>How many years ago was the cat fixed?</label>
+<input type="number" id="years" min="0" value="1" />
+
+<label>Was the cat female?</label>
+<button type="button" id="femaleBtn" class="toggle-btn active">Yes</button>
+<button type="button" id="maleBtn" class="toggle-btn">No</button>
+
+<div id="femaleInputs">
+  <label>How many litters did she have before being fixed?</label>
+  <input type="number" id="littersBefore" min="0" value="0" />
+
+  <label>Was she pregnant when fixed?</label>
+  <button type="button" id="pregnantYesBtn" class="toggle-btn">Yes</button>
+  <button type="button" id="pregnantNoBtn" class="toggle-btn active">No</button>
+</div>
+
+<button id="calculateBtn">Calculate Impact</button>
+
+<div id="result"></div>
+
+<script>
+  const femaleBtn = document.getElementById('femaleBtn');
+  const maleBtn = document.getElementById('maleBtn');
+  const femaleInputs = document.getElementById('femaleInputs');
+
+  const pregnantYesBtn = document.getElementById('pregnantYesBtn');
+  const pregnantNoBtn = document.getElementById('pregnantNoBtn');
+
+  let isFemale = true;
+  let isPregnant = false;
+
+  function updateGenderButtons() {
+    if (isFemale) {
+      femaleBtn.classList.add('active');
+      maleBtn.classList.remove('active');
+      femaleInputs.style.display = 'block';
+    } else {
+      femaleBtn.classList.remove('active');
+      maleBtn.classList.add('active');
+      femaleInputs.style.display = 'none';
+    }
+  }
+
+  function updatePregnantButtons() {
+    if (isPregnant) {
+      pregnantYesBtn.classList.add('active');
+      pregnantNoBtn.classList.remove('active');
+    } else {
+      pregnantYesBtn.classList.remove('active');
+      pregnantNoBtn.classList.add('active');
+    }
+  }
+
+  femaleBtn.addEventListener('click', () => {
+    isFemale = true;
+    updateGenderButtons();
+  });
+
+  maleBtn.addEventListener('click', () => {
+    isFemale = false;
+    updateGenderButtons();
+  });
+
+  pregnantYesBtn.addEventListener('click', () => {
+    isPregnant = true;
+    updatePregnantButtons();
+  });
+
+  pregnantNoBtn.addEventListener('click', () => {
+    isPregnant = false;
+    updatePregnantButtons();
+  });
+
+  document.getElementById('calculateBtn').addEventListener('click', () => {
+    const years = Number(document.getElementById('years').value);
+    const littersBefore = Number(document.getElementById('littersBefore').value);
+
+    // Constants based on common cat reproduction data
+    const littersPerYear = 3;       // Average litters a female cat can have per year
+    const avgLitterSize = 4;        // Average kittens per litter
+    const femaleRatio = 0.5;        // Approximate ratio of female kittens
+
+    let prevented = 0;
+
+    if (isFemale) {
+      if (years <= 0) {
+        prevented = 0;
+      } else {
+        // Kittens prevented from this cat’s own litters after spay
+        const directKittens = years * littersPerYear * avgLitterSize;
+
+        // Kittens prevented from second generation offspring (starting 1 year later)
+        const secondGenFemales = Math.floor(directKittens * femaleRatio);
+        const secondGenYears = Math.max(0, years - 1);
+        const secondGenKittens = secondGenFemales * littersPerYear * avgLitterSize * secondGenYears;
+
+        // Kittens from litters before spay
+        const preSpayKittens = littersBefore * avgLitterSize;
+
+        // Add one litter if pregnant at spay
+        const pregnantKittens = isPregnant ? avgLitterSize : 0;
+
+        prevented = directKittens + secondGenKittens + preSpayKittens + pregnantKittens;
+      }
+    } else {
+      // For male cats, estimate fewer prevented kittens since impact is indirect
+      // Assume one male impregnates approx 5 females/year, each with avg litter size
+      const impregnationsPerYear = 5;
+      if (years <= 0) {
+        prevented = 0;
+      } else {
+        prevented = years * impregnationsPerYear * avgLitterSize;
+      }
+    }
+
+    document.getElementById('result').textContent = `🎉 You've potentially prevented approximately ${Math.round(prevented)} kittens from being born.`;
+  });
+
+  updateGenderButtons();
+  updatePregnantButtons();
+</script>
+
+</body>
+</html>
